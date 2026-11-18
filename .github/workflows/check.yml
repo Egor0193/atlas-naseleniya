@@ -1,0 +1,22 @@
+name: Проверки проекта
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Проверить доступность и практики в Lighthouse
+        run: |
+          npm start > /tmp/atlas-server.log 2>&1 &
+          for i in {1..20}; do curl -fsS http://127.0.0.1:8000/ >/dev/null && break || sleep 1; done
+          npx --yes lighthouse@12 http://127.0.0.1:8000/ --only-categories=accessibility,best-practices --chrome-flags="--headless --no-sandbox" --output=json --output-path=/tmp/lighthouse.json
+          node -e "const c=require('/tmp/lighthouse.json').categories; for(const k of ['accessibility','best-practices']){console.log(k,c[k].score); if(c[k].score<0.8)process.exitCode=1}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse
+          path: /tmp/lighthouse.json
