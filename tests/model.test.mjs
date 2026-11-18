@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {parseCSV,selectRows,percentChange,sorted} from '../dist/model.js';
+const header = 'country,year,population\n';
+const rows = parseCSV(readFileSync(new URL('../dist/data/population.csv',import.meta.url),'utf8'));
+test('Полные ряды шести стран',()=>{assert.equal(rows.length,156);assert.equal(new Set(rows.map(r=>r.country)).size,6)});
+test('Значение Беларуси за 2025 год',()=>assert.equal(selectRows(rows,'Беларусь',2025,2025)[0].population,9085991));
+test('BOM и точка с запятой',()=>assert.equal(parseCSV('\uFEFFcountry;year;population\r\nА;2000;12')[0].population,12));
+test('Дубликат',()=>assert.throws(()=>parseCSV(header+'А,2000,1\nА,2000,2'),/уже/));
+test('Пустой файл',()=>assert.throws(()=>parseCSV(header)));
+test('Отрицательное число',()=>assert.throws(()=>parseCSV(header+'А,2000,-1')));
+test('Нулевая база',()=>assert.equal(percentChange(0,12),null));
+test('Процент сокращения',()=>assert.equal(percentChange(200,150),-25));
+test('Сортировка чисел без изменения исходника',()=>{const small=[{population:2},{population:10}];assert.equal(sorted(small,'population',false)[0].population,10);assert.equal(small[0].population,2)});
