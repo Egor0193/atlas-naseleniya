@@ -1,0 +1,11 @@
+@media print {
+  header, footer, .skip, .filters, .intro button, .pager, .check, #source details { display:none!important }
+  body, main { background:white }
+  .wrap {max-width:none;padding:0}
+  .intro,.metrics {margin:8px 0}
+  .card,.metrics article {break-inside:avoid;padding:12px}
+  #table {break-before:page}
+  .metrics article:first-child {background:white;color:#142c38}
+  .metrics article:first-child strong {color:#142c38}
+  .track,.donut,.dot {print-color-adjust:exact}
+}
